@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modo profesional · Panel GMC-800</title>
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="pro">
+
+<div class="login" id="login">
+  <form id="loginForm" class="panel">
+    <img src="/logo" alt="IPARCOS · UCM" style="height:44px;align-self:flex-start">
+    <h2>Modo profesional</h2>
+    <label for="pw">Contraseña (aparece en la terminal al arrancar el servidor)</label>
+    <input id="pw" type="password" autocomplete="current-password" required>
+    <button class="primary" type="submit">Entrar</button>
+  </form>
+</div>
+
+<header class="bar">
+  <img class="logo" src="/logo" alt="IPARCOS · UCM">
+  <div class="title">Panel GMC-800<small id="devLine">Conectando…</small></div>
+  <span class="badge sim" id="simBadge" hidden>Simulación</span>
+  <span class="badge off" id="offBadge" hidden>Desconectado</span>
+  <a href="/screen" target="_blank"><button>Abrir proyección</button></a>
+</header>
+
+<div class="layout">
+  <nav aria-label="Secciones">
+    <button data-tab="live" aria-current="true">En directo</button>
+    <button data-tab="activity">Actividad</button>
+    <button data-tab="device">Aparato</button>
+    <button data-tab="config">Configuración</button>
+    <button data-tab="sim" id="simTabBtn" hidden>Simulación</button>
+  </nav>
+
+  <div>
+    <!-- ======================================================== EN DIRECTO -->
+    <section class="tab" id="tab-live">
+      <div class="stats">
+        <div class="reading"><div class="v num" id="sCps">–</div><div class="k">CPS (último segundo)</div></div>
+        <div class="reading"><div class="v num" id="sCpm">–</div><div class="k">CPM (media móvil 60 s)</div></div>
+        <div class="reading"><div class="v num" id="sCpmDev">–</div><div class="k">CPM según el aparato</div></div>
+        <div class="reading"><div class="v num" id="sUsv">–</div><div class="k">µSv/h</div></div>
+        <div class="reading"><div class="v num" id="sDose">–</div><div class="k">Dosis de la sesión (µSv)</div></div>
+        <div class="reading"><div class="v num" id="sMax">–</div><div class="k">CPS máximo (aparato)</div></div>
+      </div>
+      <div class="panel">
+        <div class="row" style="justify-content:space-between">
+          <div class="seg" role="group" aria-label="Ventana temporal">
+            <button data-win="60">1 min</button>
+            <button data-win="600" aria-pressed="true">10 min</button>
+            <button data-win="3600">1 h</button>
+          </div>
+          <div class="seg" role="group" aria-label="Magnitud">
+            <button data-unit="cps" aria-pressed="true">CPS</button>
+            <button data-unit="cpm">CPM (media 60 s)</button>
+            <button data-unit="usv">µSv/h</button>
+          </div>
+          <span class="note" id="winStats"></span>
+        </div>
+        <canvas class="chart" id="liveChart" style="height:380px"></canvas>
+      </div>
+      <div class="row">
+        <a id="dlSeries" href="#"><button>Descargar serie (CSV)</button></a>
+        <a id="dlSession" href="#"><button>Descargar sesión de divulgación (JSON)</button></a>
+      </div>
+    </section>
+
+    <!-- ======================================================== ACTIVIDAD -->
+    <section class="tab" id="tab-activity" hidden>
+      <div class="panel">
+        <h2>Actividad en pantalla</h2>
+        <p class="lead">Lo que elijas aquí aparece a la vez en la proyección y en los móviles.</p>
+        <div class="acts" id="actBtns"></div>
+        <div class="row" style="margin-top:.8rem">
+          <span class="note">Idioma de la proyección:</span>
+          <div class="seg" role="group" aria-label="Idioma de la proyección">
+            <button data-slang="es">Español</button><button data-slang="en">English</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" id="measurePanel">
+        <h2 id="mTitle">Medir</h2>
+        <p class="note" id="mHelp"></p>
+        <div class="row" style="margin-top:.6rem">
+          <label id="lblSel">Muestra<select id="mSel"></select></label>
+          <label id="lblText">Otro nombre<input id="mText" placeholder="opcional" size="16"></label>
+          <label id="lblX"><span id="lblXText">Espesor (mm)</span><input id="mX" type="number" step="any" min="0" style="width:7em"></label>
+          <label>Duración (s, 0 = hasta parar)<input id="mDur" type="number" min="0" step="1" value="60" style="width:7em"></label>
+          <button class="primary" id="mStart">Empezar medida</button>
+          <button id="mStop" disabled>Parar</button>
+        </div>
+        <div class="measuring" id="mStatus" style="margin-top:.6rem"></div>
+        <div class="progress"><div id="mBar"></div></div>
+        <div class="scroll"><table id="pointsTable"></table></div>
+        <div class="row" style="margin-top:.6rem">
+          <button class="danger" id="mReset">Borrar los datos de esta actividad</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Fondo usado para restar</h2>
+        <p class="note">Por defecto se usa la media medida en la actividad «Fondo» (si tiene al menos 10 s). Puedes fijar un valor a mano.</p>
+        <div class="row" style="margin-top:.5rem">
+          <span class="num" id="bgNow"></span>
+          <label>Fondo manual (cps)<input id="bgManual" type="number" step="any" min="0" style="width:8em"></label>
+          <button id="bgSet">Fijar</button><button id="bgAuto">Usar el medido</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== APARATO -->
+    <section class="tab" id="tab-device" hidden>
+      <div class="grid2">
+        <div class="panel">
+          <h2>Información</h2>
+          <table id="infoTable"></table>
+          <div class="row" style="margin-top:.6rem">
+            <button id="syncTime">Poner en hora con el ordenador</button>
+            <button id="refreshInfo">Actualizar</button>
+          </div>
+        </div>
+        <div class="panel">
+          <h2>Teclas a distancia</h2>
+          <p class="note">Emulan las cuatro teclas físicas, así que permiten recorrer cualquier menú del aparato desde aquí. Comprueba con el aparato delante qué tecla corresponde a cada botón.</p>
+          <div class="row" style="margin-top:.6rem">
+            <button data-key="0">Tecla 1</button><button data-key="1">Tecla 2</button>
+            <button data-key="2">Tecla 3</button><button data-key="3">Tecla 4</button>
+          </div>
+          <h2 style="margin-top:1rem">Alimentación</h2>
+          <div class="row">
+            <button id="pwrOn">Encender</button><button id="pwrOff">Apagar</button><button id="reboot">Reiniciar</button>
+          </div>
+        </div>
+        <div class="panel">
+          <h2>Conversión a dosis</h2>
+          <p class="note">Factor que convierte CPM en µSv/h. Se intenta leer de la calibración del aparato; el valor de GQ para el tubo M4011 es 1/153,8 ≈ 0,0065.</p>
+          <div class="row" style="margin-top:.5rem">
+            <label>µSv/h por CPM<input id="factor" type="number" step="any" style="width:9em"></label>
+            <button id="setFactor">Guardar</button>
+            <button id="resetDose">Poner a cero la dosis de la sesión</button>
+          </div>
+        </div>
+        <div class="panel">
+          <h2>Historial interno</h2>
+          <p class="note">Descarga lo que el aparato ha registrado en su memoria. Puede tardar unos minutos y durante la descarga se pausan las medidas en directo. La conversión a CSV es experimental: compárala con GQ Data Viewer.</p>
+          <div class="row" style="margin-top:.5rem">
+            <button id="histStart">Leer historial</button>
+            <a id="dlHistCsv" href="#" hidden><button>CSV</button></a>
+            <a id="dlHistBin" href="#" hidden><button>Datos en bruto</button></a>
+          </div>
+          <div class="progress"><div id="histBar"></div></div>
+        </div>
+        <div class="panel">
+          <h2>Restablecer de fábrica</h2>
+          <div class="warnbox">Borra la configuración y la calibración del aparato. Antes se guarda una copia en la carpeta data/.</div>
+          <div class="row" style="margin-top:.5rem">
+            <label>Escribe BORRAR para confirmar<input id="frConfirm" autocomplete="off"></label>
+            <button class="danger" id="factoryReset">Restablecer</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== CONFIGURACIÓN -->
+    <section class="tab" id="tab-config" hidden>
+      <div class="warnbox">
+        GQ no publica el mapa de configuración del GMC-800. La lectura y escritura del bloque completo usan el protocolo estándar de GQ,
+        pero los nombres de los campos proceden de modelos anteriores y pueden no coincidir. Para cambios habituales, las teclas a distancia
+        de la pestaña «Aparato» son la vía más segura. Antes de cada escritura se guarda una copia automática.
+      </div>
+      <div class="panel">
+        <h2>Campos interpretados</h2>
+        <div class="scroll"><table id="cfgFields"></table></div>
+      </div>
+      <div class="panel">
+        <h2>Bloque completo</h2>
+        <p class="note">Pulsa un byte para cambiar su valor (0–255). Los cambios pendientes se marcan en amarillo y no se envían hasta que pulses «Escribir en el aparato».</p>
+        <div class="row" style="margin:.6rem 0">
+          <button id="cfgReload">Leer del aparato</button>
+          <button id="cfgBackup">Guardar copia</button>
+          <button class="primary" id="cfgWrite" disabled>Escribir en el aparato</button>
+          <button id="cfgDiscard" disabled>Descartar cambios</button>
+        </div>
+        <div class="progress"><div id="cfgBar"></div></div>
+        <div class="scroll"><table class="hex" id="cfgHex"></table></div>
+      </div>
+      <div class="panel">
+        <h2>Copias de seguridad</h2>
+        <div class="row">
+          <select id="backupSel"></select>
+          <button class="danger" id="cfgRestore">Restaurar en el aparato</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== SIMULACIÓN -->
+    <section class="tab" id="tab-sim" hidden>
+      <div class="panel">
+        <h2>Simulación</h2>
+        <p class="lead">Recrea en el simulador lo que harías con el aparato. Las tasas son aproximadas para un tubo M4011, no medidas reales.</p>
+        <div class="row">
+          <label>Fuente<select id="simSource"></select></label>
+          <label>Distancia (cm)<input id="simDist" type="number" step="0.5" min="0.5" value="5" style="width:7em"></label>
+          <label>Blindaje<select id="simMat"></select></label>
+          <label>Espesor (mm)<input id="simThick" type="number" step="0.5" min="0" value="0" style="width:7em"></label>
+          <button class="primary" id="simApply">Aplicar</button>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script src="/static/js/common.js"></script>
+<script src="/static/js/pro.js"></script>
+</body>
+</html>

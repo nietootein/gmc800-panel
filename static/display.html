@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1c2b4a">
+<title>Detectando radiactividad · IPARCOS-UCM</title>
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<header class="bar">
+  <img class="logo" src="/logo" alt="IPARCOS · Universidad Complutense de Madrid">
+  <div class="title"><span data-t="app"></span><small data-t="org"></small></div>
+  <span class="badge sim" id="simBadge" hidden data-t="sim"></span>
+  <span class="badge off" id="offBadge" hidden data-t="offline"></span>
+  <button id="soundBtn" class="screen-only" aria-pressed="false" data-t="sound"></button>
+  <div class="seg" role="group" aria-label="Idioma / Language">
+    <button data-lang="es" aria-pressed="true">ES</button>
+    <button data-lang="en" aria-pressed="false">EN</button>
+  </div>
+</header>
+
+<main>
+  <div class="left">
+    <div class="live">
+      <div class="detector" id="detector" aria-hidden="true">
+        <div class="readout"><span class="big num" id="bigCps">–</span><span class="unit" id="bigUnit" data-t="cps"></span></div>
+      </div>
+      <div class="readings">
+        <div class="reading"><div class="v num" id="rCpm">–</div><div class="k" data-t="cpm"></div></div>
+        <div class="reading"><div class="v num" id="rUsv">–</div><div class="k" data-t="usvh"></div></div>
+        <div class="reading r-cps"><div class="v num" id="rCps">–</div><div class="k" data-t="cpsShort"></div></div>
+      </div>
+    </div>
+    <div class="qrbox">
+      <img id="qr" src="/api/qr.svg" alt="">
+      <div><strong data-t="scan"></strong><div class="url num" id="url"></div></div>
+    </div>
+  </div>
+
+  <section class="panel" id="panel" aria-live="polite"></section>
+</main>
+
+<script src="/static/js/common.js"></script>
+<script src="/static/js/display.js"></script>
+</body>
+</html>
